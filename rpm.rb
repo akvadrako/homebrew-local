@@ -20,7 +20,7 @@ class Rpm < Formula
     # Note - MacPorts also builds without optimizations. This seems to fix several
     # random crashes
     ENV.append 'CPPFLAGS', "-I#{HOMEBREW_PREFIX}/include/nss -I#{HOMEBREW_PREFIX}/include/nspr"
-    ENV.append 'CFLAGS', "-O0"
+    ENV.append 'CFLAGS', "-O0 -g3"
     system "./configure", "--disable-dependency-tracking", "--prefix=#{prefix}", "--with-external-db", "--sysconfdir=#{HOMEBREW_PREFIX}/etc", "--disable-optimize", "--without-javaglue", "--without-apidocs", "--enable-python", "--localstatedir=#{HOMEBREW_PREFIX}/var"
     system "make"
     system "make install"
@@ -91,3 +91,15 @@ diff -ur rpm-4.10.0/system.h rpm-4.10.0-me/system.h
    { if ((__progname = strrchr(pn, '/')) != NULL) __progname++; \
      else __progname = pn;		\
    }
+diff --git a/rpmqv.c b/rpmqv.c
+index da5f2ca..678af3e 100644
+--- a/rpmqv.c
++++ b/rpmqv.c
+@@ -1,5 +1,5 @@
+ #include "system.h"
+-const char *__progname;
++const char *__progname = "rpm";
+ 
+ #include <rpm/rpmcli.h>
+ #include <rpm/rpmlib.h>                        /* RPMSIGTAG, rpmReadPackageFile .. */
+
