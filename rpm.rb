@@ -1,9 +1,22 @@
+#
+# RPM5.4 looks nicer - see the macports file:
+# 
+# https://trac.macports.org/browser/trunk/dports/sysutils/rpm54/Portfile
+#
 require 'formula'
 
+class RpmDownloadStrategy < CurlDownloadStrategy
+  def stage
+    safe_system "rpm2cpio <#{@tarball_path} | cpio -dvim"
+    safe_system "tar -xzf rpm-5.4.9.tar.gz"
+    Dir.chdir "rpm-5.4.9"
+  end
+end
+
 class Rpm < Formula
-  url 'http://rpm.org/releases/rpm-4.10.x/rpm-4.10.0.tar.bz2'
-  homepage 'http://www.rpm.org/'
-  md5 '6531fa74f06df0feee774688538241e8'
+  url 'http://rpm5.org/files/rpm/rpm-5.4/rpm-5.4.9-0.20120508.src.rpm'
+  homepage 'http://www.rpm5.org/'
+  md5 '60d56ace884340c1b3fcac6a1d58e768'
 
   depends_on 'nss'
   depends_on 'nspr'
@@ -11,17 +24,73 @@ class Rpm < Formula
   depends_on 'popt'
   depends_on 'lua'
   depends_on 'berkeley-db'
+  # depends_on 'expat'
+  # depends_on 'neon'
+  # depends_on 'beecrypt'
+  # depends_on 'gettext'
+  # depends_on 'libtool'
+  # depends_on 'xar'
+  # depends_on 'xz'
+  # depends_on 'ossp-uuid'
+  depends_on 'rpm2cpio'
+
+  fails_with :clang do
+    build 318
+  end
 
   def patches
-    DATA
+    # DATA
+  end
+  
+  def download_strategy
+    RpmDownloadStrategy
   end
 
   def install
     # Note - MacPorts also builds without optimizations. This seems to fix several
     # random crashes
-    ENV.append 'CPPFLAGS', "-I#{HOMEBREW_PREFIX}/include/nss -I#{HOMEBREW_PREFIX}/include/nspr"
-    ENV.append 'CFLAGS', "-O0 -g3"
-    system "./configure", "--disable-dependency-tracking", "--prefix=#{prefix}", "--with-external-db", "--sysconfdir=#{HOMEBREW_PREFIX}/etc", "--disable-optimize", "--without-javaglue", "--without-apidocs", "--enable-python", "--localstatedir=#{HOMEBREW_PREFIX}/var"
+    # export CPPFLAGS="$(pkg-config nss --cflags)"
+    #ENV.append 'CPPFLAGS', "-I#{HOMEBREW_PREFIX}/include/nss -I#{HOMEBREW_PREFIX}/include/nspr"
+    ENV.append 'CFLAGS', "-O0 -g3 -m32"
+    args = %W[
+        --prefix=#{prefix}
+        --with-beecrypt=external 
+        --without-apidocs 
+        --with-python=2.6
+        --disable-openmp
+        --with-lua=internal
+        --with-syck=internal
+    ]
+    old_args = %W[
+        --disable-optimize
+        --sysconfdir=#{HOMEBREW_PREFIX}/etc
+        --disable-dependency-tracking
+        --with-external-db
+        --without-javaglue
+        --without-apidocs
+        --enable-python
+        --localstatedir=#{HOMEBREW_PREFIX}/var"
+    ]
+    more_args = %W[
+        --disable-nls 
+        --without-included-gettext
+        --with-libintl-prefix=#{HOMEBREW_PREFIX} 
+        --with-libiconv-prefix=#{HOMEBREW_PREFIX}
+        --mandir=#{HOMEBREW_PREFIX}/share/man 
+        --infodir=#{HOMEBREW_PREFIX}/share/info
+        --with-perl 
+        --with-sqlite 
+        --with-db=external
+        --with-neon=external 
+        --with-popt=external
+        --with-xar=external 
+        --with-xz=external 
+        --with-pcre=external 
+        --with-uuid=external
+        --sysconfdir=#{HOMEBREW_PREFIX}/etc 
+        --with-path-cfg=#{HOMEBREW_PREFIX}/etc/rpm
+    ]
+    system "./configure", *args
     system "make"
     system "make install"
   end

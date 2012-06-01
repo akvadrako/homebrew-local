@@ -1,0 +1,13 @@
+diff --git a/Library/Homebrew/extend/fileutils.rb b/Library/Homebrew/extend/fileutils.rb
+index eb08ffe..9e094a1 100644
+--- a/Library/Homebrew/extend/fileutils.rb
++++ b/Library/Homebrew/extend/fileutils.rb
+@@ -22,7 +22,7 @@ module FileUtils extend self
+       yield
+     ensure
+       chdir wd
+-      tmp.rmtree
++      #tmp.rmtree
+     end
+   end
+ 
